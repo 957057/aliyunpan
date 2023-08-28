@@ -3,6 +3,7 @@ import { IAliGetDirModel } from '../aliapi/alimodels'
 import { h } from 'vue'
 import PanDAL from './pandal'
 import TreeStore, { TreeNodeData } from '../store/treestore'
+import { GetDriveID } from '../aliapi/utils'
 
 export interface PanTreeState {
   user_id: string
@@ -45,6 +46,7 @@ const usePanTreeStore = defineStore('pantree', {
       __v_skip: true,
       drive_id: '',
       file_id: '',
+      album_id: '',
       parent_file_id: '',
       name: '',
       namesearch: '',
@@ -54,13 +56,62 @@ const usePanTreeStore = defineStore('pantree', {
     },
     selectDirPath: [],
     treeData: [
-      { __v_skip: true, title: '收藏夹', namesearch: '', key: 'favorite', icon: () => fileiconfn('iconcrown'), isLeaf: true, children: [] },
-      { __v_skip: true, title: '放映室', namesearch: '', key: 'video', icon: () => fileiconfn('iconrss_video'), isLeaf: true, children: [] },
-      { __v_skip: true, title: '回收站', namesearch: '', key: 'trash', icon: () => fileiconfn('icondelete'), isLeaf: true, children: [] },
-      { __v_skip: true, title: '文件恢复', namesearch: '', key: 'recover', icon: () => fileiconfn('iconrecover'), isLeaf: true, children: [] },
-      { __v_skip: true, title: '全盘搜索', namesearch: '', key: 'search', icon: () => fileiconfn('iconsearch'), isLeaf: true, children: [] },
+      {
+        __v_skip: true,
+        title: '收藏夹',
+        namesearch: '',
+        key: 'favorite',
+        icon: () => fileiconfn('iconcrown'),
+        isLeaf: true,
+        children: []
+      },
+      {
+        __v_skip: true,
+        title: '放映室',
+        namesearch: '',
+        key: 'video',
+        icon: () => fileiconfn('iconrss_video'),
+        isLeaf: true,
+        children: []
+      },
+      {
+        __v_skip: true,
+        title: '回收站',
+        namesearch: '',
+        key: 'trash',
+        icon: () => fileiconfn('icondelete'),
+        isLeaf: true,
+        children: []
+      },
+      {
+        __v_skip: true,
+        title: '文件恢复',
+        namesearch: '',
+        key: 'recover',
+        icon: () => fileiconfn('iconrecover'),
+        isLeaf: true,
+        children: []
+      },
+      {
+        __v_skip: true,
+        title: '全盘搜索',
+        namesearch: '',
+        key: 'search',
+        icon: () => fileiconfn('iconsearch'),
+        isLeaf: true,
+        children: []
+      },
+      {
+        __v_skip: true,
+        title: '相册管理',
+        namesearch: '',
+        key: 'pic_root',
+        icon: () => fileiconfn('iconjietu'),
+        isLeaf: true,
+        children: []
+      },
       { __v_skip: true, title: '备份盘', namesearch: '', key: 'backup_root', children: [] },
-      { __v_skip: true, title: '资源盘', namesearch: '', key: 'resource_root', children: [] },
+      { __v_skip: true, title: '资源盘', namesearch: '', key: 'resource_root', children: [] }
     ],
     treeExpandedKeys: ['backup_root', 'resource_root'],
     treeSelectedKeys: [],
@@ -75,25 +126,21 @@ const usePanTreeStore = defineStore('pantree', {
   actions: {
     mTreeSelected(e: any, kuaijie: boolean = false) {
       console.log('mTreeSelected', e)
-      const { parent = undefined, key, drive_id = undefined} = e.node
-      const panTreeStore = usePanTreeStore()
+      let { key, drive_id = undefined } = e.node
+      let is_refresh_drive_id = !['favorite', 'trash', 'recover'].includes(key) || !/color.*/g.test(key)
       if (!kuaijie) {
         const getParentNode = (node: any): any => {
-          if (!node.parent) return node
           return node.parent ? getParentNode(node.parent) : node
         }
-        let parentNode = parent && getParentNode(parent)
-        if ((parentNode && parentNode.key.startsWith('backup')) || key.startsWith('backup')) {
-          panTreeStore.drive_id = panTreeStore.default_drive_id
-        } else {
-          panTreeStore.drive_id = panTreeStore.resource_drive_id
-        }
-      } else {
-        if (drive_id) panTreeStore.drive_id = drive_id
+        const parentNode = getParentNode(e.node)
+        drive_id = GetDriveID(this.user_id, parentNode.key || key)
       }
+      if (is_refresh_drive_id && drive_id) {
+        this.drive_id = drive_id
+      }
+      if (key === 'pic_root') key = this.selectDir.album_type || 'pic_root'
       PanDAL.aReLoadOneDirToShow('', key, true)
     },
-
     mTreeExpand(key: string) {
       console.log('mTreeExpand', key)
       const arr = this.treeExpandedKeys

@@ -1,4 +1,4 @@
-import { ApiGetAsyncTask, ApiGetAsyncTaskUnzip, AsyncType, Drive } from '../aliapi/utils'
+import { ApiGetAsyncTask, ApiGetAsyncTaskUnzip, AsyncType } from '../aliapi/utils'
 import PanDAL from '../pan/pandal'
 import DebugLog from '../utils/debuglog'
 import { humanTimeFM } from '../utils/format'
@@ -35,8 +35,6 @@ export interface FootState {
 
   panDirInfo: string
 
-  picDirInfo: string
-
   uploadingInfo: string
 
   uploadTotalSpeed: string
@@ -61,7 +59,6 @@ const useFootStore = defineStore('foot', {
     audioUrl: '',
     rightWidth: 301,
     panDirInfo: '',
-    picDirInfo: '',
     uploadingInfo: '',
     uploadTotalSpeed: '',
     downloadingInfo: '',
@@ -85,7 +82,6 @@ const useFootStore = defineStore('foot', {
       if (state.loadingInfo) return ''
       const appTab = useAppStore().appTab
       if (appTab == 'pan') return state.panSpaceInfo
-      if (appTab == 'pic') return state.panSpaceInfo
       return ''
     },
     GetInfo(state: FootState): string {
@@ -93,7 +89,6 @@ const useFootStore = defineStore('foot', {
       const appTab = useAppStore().appTab
       const appPage = useAppStore().GetAppTabMenu
       if (appTab == 'pan') return state.panDirInfo
-      if (appTab == 'pic') return state.panDirInfo
       if (appPage == 'DowningRight') return state.downloadingInfo
       if (appPage == 'UploadingRight') return state.uploadingInfo
       return ''
@@ -188,9 +183,8 @@ const useFootStore = defineStore('foot', {
       this.panSpaceInfo = '总空间 ' + token.spaceinfo
     },
 
-    mSaveDirInfo(drive: Drive, info: string) {
-      if (drive == 'pan') this.panDirInfo = info
-      if (drive == 'pic') this.picDirInfo = info
+    mSaveDirInfo(info: string) {
+      this.panDirInfo = info
     }
   }
 })
